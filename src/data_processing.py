@@ -65,6 +65,7 @@ def collect_track_statistics(data):
     all_tracks = {}
     artist_counts = Counter()
     album_counts = Counter()
+    artist_names = {}  # Map from artist URI to artist name
 
     # Collect all tracks and count occurrences
     for playlist in data['playlists']:
@@ -72,6 +73,9 @@ def collect_track_statistics(data):
             track_uri = track['track_uri']
             artist_uri = track['artist_uri']
             album_uri = track['album_uri']
+
+            # Store artist name mapping
+            artist_names[artist_uri] = track['artist_name']
 
             if track_uri not in all_tracks:
                 all_tracks[track_uri] = {
@@ -95,17 +99,15 @@ def collect_track_statistics(data):
     for uri, track_info in top_tracks:
         print(f"  {track_info['name']} by {track_info['artist']} - {track_info['count']} occurrences")
 
-    # Find most common artists
+    # Find most common artists using the artist_names mapping
     top_artists = artist_counts.most_common(10)
     print("\nTop 10 most common artists:")
     for uri, count in top_artists:
-        # Find a track with this artist to get the name
-        for track_data in all_tracks.values():
-            if track_data['artist'] and track_data['artist'] != "":
-                print(f"  {track_data['artist']} - {count} occurrences")
-                break
+        artist_name = artist_names.get(uri, "Unknown Artist")
+        print(f"  {artist_name} - {count} occurrences")
 
     return all_tracks, artist_counts, album_counts
+
 
 
 if __name__ == "__main__":
@@ -122,5 +124,6 @@ if __name__ == "__main__":
     challenge_data = load_challenge_data(challenge_file)
     categories = analyze_challenge_playlists(challenge_data)
     tracks, artists, albums = collect_track_statistics(challenge_data)
+
 
     print("\nData analysis complete!")
